@@ -13,8 +13,8 @@
 // @grant        GM_xmlhttpRequest
 // @connect      *
 // @license      Apache-2.0
-// @downloadURL  https://update.greasyfork.org/scripts/550155/%E9%80%9A%E7%94%A8%E7%BD%91%E9%A1%B5%E5%9B%BE%E7%89%87%E7%81%AF%E7%AE%B1%28WebImageBox%29.user.js
-// @updateURL    https://update.greasyfork.org/scripts/550155/%E9%80%9A%E7%94%A8%E7%BD%91%E9%A1%B5%E5%9B%BE%E7%89%87%E7%81%AF%E7%AE%B1%28WebImageBox%29.meta.js
+// @downloadURL  https://raw.githubusercontent.com/setube/webImageBox/main/WebImageBox.user.js
+// @updateURL    https://raw.githubusercontent.com/setube/webImageBox/main/WebImageBox.user.js
 // ==/UserScript==
 
 ;(function () {
