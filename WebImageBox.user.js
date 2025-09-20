@@ -2,10 +2,17 @@
 // @name         通用网页图片灯箱(WebImageBox)
 // @author       setube
 // @namespace    https://github.com/setube/webImageBox
-// @version      1.5.6
+// @version      1.6.0
 // @description  通用网页图片灯箱：旋转、缩放、切换、单张/批量下载，让你看图不再受限
 // @match        *://*/*
-// @require      https://registry.npmmirror.com/jszip/3.10.1/files/dist/jszip.min.js
+// @require      https://registry.npmmirror.com/fflate/0.8.2/files/umd/index.js
+// @require      https://unpkg.com/qmsg@1.4.0/dist/index.umd.js
+// @resource     iconFontCSS https://at.alicdn.com/t/c/font_5026690_6mvd6y6o6pr.css
+// @grant        GM_getResourceText
+// @grant        GM_addStyle
+// @grant        GM_xmlhttpRequest
+// @grant        GM_log
+// @connect      *
 // @license      Apache-2.0
 // @downloadURL https://update.greasyfork.org/scripts/550155/%E9%80%9A%E7%94%A8%E7%BD%91%E9%A1%B5%E5%9B%BE%E7%89%87%E7%81%AF%E7%AE%B1%28WebImageBox%29.user.js
 // @updateURL https://update.greasyfork.org/scripts/550155/%E9%80%9A%E7%94%A8%E7%BD%91%E9%A1%B5%E5%9B%BE%E7%89%87%E7%81%AF%E7%AE%B1%28WebImageBox%29.meta.js
@@ -13,13 +20,17 @@
 
 ;(function () {
   'use strict'
-
+  // 读取资源
+  const css = GM_getResourceText('iconFontCSS')
+  // 注入到页面
+  GM_addStyle(css)
   // 内联 CSS
   const style = document.createElement('style')
+
   style.textContent = `
   #myLightboxOverlay {
     position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);
-    display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:99999;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;
     overflow:hidden;
   }
   .lb-main-container { position:relative; width:90%; height:70%; overflow:hidden; display:flex; justify-content:center; align-items:center; }
@@ -38,8 +49,8 @@
   .lb-thumbs::-webkit-scrollbar { display: none; }
   .lb-thumbs img { height:60px; cursor:pointer; opacity:0.5; transition:0.3s; flex-shrink:0; }
   .lb-thumbs img.active { opacity:1; border:2px solid #fff; }
+  .qmsg { z-index: 100002; }
   @media (max-width: 768px) {
-    .lb-nav-button, .lb-buttons button { width: 40px; height: 40px;}
     .lb-nav-button:hover, .lb-buttons button:hover { background: rgba(0,0,0,0.6); }
   }
   `
@@ -63,49 +74,33 @@
   controls.className = 'lb-buttons'
 
   const btnConfig = [
-    { title: '左旋转', svg: '<path d="M12 2v2a8 8 0 1 0 8 8h-2a6 6 0 1 1-6-6V2z"/>' },
-    { title: '右旋转', svg: '<path d="M12 2v2a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/>' },
-    { title: '放大', svg: '<path d="M15 11h-4V7h-2v4H5v2h4v4h2v-4h4z"/>' },
-    { title: '缩小', svg: '<path d="M5 11v2h10v-2z"/>' },
-    { title: '下载', svg: '<path d="M12 16l4-5h-3V4h-2v7H8z"/><path d="M5 18h14v2H5z"/>' },
-    {
-      title: '下载所有',
-      svg: '<path d="M3 4a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H7l-4-4V4z"/><path d="M12 12v6m0 0l-3-3m3 3l3-3"/>'
-    },
-    { title: '关闭', svg: '<path d="M6 6l12 12M6 18L18 6"/>' }
+    { title: '左旋转', icon: 'undo' },
+    { title: '右旋转', icon: 'redo' },
+    { title: '放大', icon: 'fullscreen' },
+    { title: '缩小', icon: 'fullscreen-exit' },
+    { title: '下载', icon: 'download' },
+    { title: '下载所有', icon: 'file-zip' },
+    { title: 'Github', icon: 'github-fill' },
+    { title: '关闭', icon: 'close' }
   ]
 
   btnConfig.forEach(cfg => {
     const btn = document.createElement('button')
     btn.title = cfg.title
-    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" 
-    stroke="currentColor" stroke-width="2">${cfg.svg}</svg>`
+    btn.className = `iconfont icon-${cfg.icon}`
     controls.appendChild(btn)
   })
   overlay.appendChild(controls)
 
   // 左右切换按钮
   const prevBtn = document.createElement('button')
-  prevBtn.className = 'lb-prev lb-nav-button'
+  prevBtn.className = 'lb-prev lb-nav-button iconfont icon-left'
   prevBtn.title = '上一张'
   prevBtn.setAttribute('aria-label', '上一张')
-  prevBtn.innerHTML = `
-  <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-    <path d="M15 18L9 12l6-6"></path>
-  </svg>`
-
   const nextBtn = document.createElement('button')
-  nextBtn.className = 'lb-next lb-nav-button'
+  nextBtn.className = 'lb-next lb-nav-button iconfont icon-right'
   nextBtn.title = '下一张'
   nextBtn.setAttribute('aria-label', '下一张')
-  nextBtn.innerHTML = `
-  <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" >
-    <path d="M9 6l6 6-6 6"></path>
-  </svg>`
-
   overlay.appendChild(prevBtn)
   overlay.appendChild(nextBtn)
 
@@ -193,8 +188,19 @@
   }
 
   const isSmallOrAvatar = img => {
-    // 被广告插件屏蔽
-    if (!img.complete || !img.naturalWidth || !img.naturalHeight || !img.width || !img.height) return false
+    // 跳过灯箱内部的缩略图和主图
+    if (img.closest('#myLightboxOverlay')) return
+    // 忽略头像、小图、被广告插件屏蔽的图片
+    if (
+      !img.complete ||
+      !img.naturalWidth ||
+      !img.naturalHeight ||
+      !img.width ||
+      !img.height ||
+      img.width < 100 ||
+      img.height < 100
+    )
+      return false
     // 图片元素必须在页面中可见
     const rect = img.getBoundingClientRect()
     if (!rect.width || !rect.height) return false
@@ -202,8 +208,19 @@
     const style = getComputedStyle(img)
     if (style.display === 'none' || style.visibility === 'hidden') return false
     const keywords = [
-      'icon', 'ico', 'avatar', 'ava', 'emoji', 'biaoqing', 
-      'logo', 'btn', 'button', 'qrcode', 'advertisement', 'ads', 'promotation'
+      'icon',
+      'ico',
+      'avatar',
+      'ava',
+      'emoji',
+      'biaoqing',
+      'logo',
+      'btn',
+      'button',
+      'qrcode',
+      'advertisement',
+      'ads',
+      'promotation'
     ]
     const checkString = str => keywords.some(k => (str || '').toLowerCase().includes(k))
     // 检查 img 本身
@@ -226,29 +243,23 @@
     const uniqueSrc = new Set()
     const uniqueName = new Set()
     imgs = []
-
     pageImgs.forEach(img => {
-      // 跳过灯箱内部的缩略图和主图
-      if (img.closest('#myLightboxOverlay')) return
-      // 忽略头像、小图
-      if (img.width < 100 || img.height < 100 || !isSmallOrAvatar(img)) return
+      if (!isSmallOrAvatar(img)) return
       const fileName = img.src.split('/').pop()
       if (!uniqueSrc.has(img.src) && !uniqueName.has(fileName)) {
         uniqueSrc.add(img.src)
         uniqueName.add(fileName)
         imgs.push(img)
-
         // 避免重复绑定
         if (!img.dataset.lb) {
           img.dataset.lb = 'true'
           img.style.cursor = 'zoom-in'
-
           // 绑定点击事件，打开灯箱
           img.addEventListener('click', e => {
             e.preventDefault()
             e.stopPropagation()
             const index = imgs.indexOf(img)
-            openLightbox(index) // 调用 openLightbox
+            openLightbox(index)
           })
         }
       }
@@ -260,13 +271,11 @@
     currentIndex = index
     rotation = 0
     scale = 1
-
     // 显示 overlay，初始化透明度和缩放
     overlay.style.display = 'flex'
     overlay.style.opacity = '0'
     lbImg.style.opacity = '0'
     lbImg.src = imgs[currentIndex].src
-
     // 强制浏览器渲染
     requestAnimationFrame(() => {
       overlay.style.transition = 'opacity 0.35s'
@@ -276,7 +285,6 @@
       overlay.style.transition = ''
       lbImg.style.transition = ''
     })
-
     updateThumbs()
     lockBodyScroll()
   }
@@ -313,44 +321,65 @@
   setupImages()
 
   // 控制按钮事件
-  const [rotateL, rotateR, zoomIn, zoomOut, download, downloadAll, closeBtn] = controls.querySelectorAll('button')
+  const [rotateL, rotateR, zoomIn, zoomOut, download, downloadAll, github, closeBtn] =
+    controls.querySelectorAll('button')
+
   // 左旋转按钮
   rotateL.addEventListener('click', () => {
     rotation -= 90
     imgStates.set(lbImg.src, { rotation, scale })
     updateTransform()
   })
+
   // 右旋转按钮
   rotateR.addEventListener('click', () => {
     rotation += 90
     imgStates.set(lbImg.src, { rotation, scale })
     updateTransform()
   })
+
   // 放大按钮
   zoomIn.addEventListener('click', () => {
     scale *= 1.2
     imgStates.set(lbImg.src, { rotation, scale })
     updateTransform()
   })
+
   // 缩小按钮
   zoomOut.addEventListener('click', () => {
     scale /= 1.2
     imgStates.set(lbImg.src, { rotation, scale })
     updateTransform()
   })
+
+  // 打开 Github
+  github.addEventListener('click', () => {
+    window.open('https://github.com/setube/webImageBox', '_blank')
+  })
+
   // 关闭按钮
   closeBtn.addEventListener('click', closeLightbox)
+
+  const fetchBlob = url =>
+    new Promise((resolve, reject) => {
+      GM_xmlhttpRequest({
+        method: 'GET',
+        url,
+        responseType: 'blob',
+        onload: res => resolve(res.response),
+        onerror: err => reject(err)
+      })
+    })
+
   // 单张下载
   download.addEventListener('click', async () => {
     try {
       let blob, filename
       const src = lbImg.src
-
       if (src.startsWith('data:')) {
         const [header, data] = src.split(',')
         const mimeMatch = header.match(/:(.*?)(;|$)/)
         const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream'
-
         if (header.includes('base64')) {
           // base64 解码
           const bstr = atob(data)
@@ -362,7 +391,6 @@
           // URI 编码解码（如 SVG）
           blob = new Blob([decodeURIComponent(data)], { type: mime })
         }
-
         // 自动扩展名
         let ext = 'png'
         if (mime === 'image/png') ext = 'png'
@@ -371,26 +399,23 @@
         else if (mime.includes('/')) ext = mime.split('/')[1]
         filename = `image.${ext}`
       } else if (src.startsWith('blob:')) {
-        const res = await fetch(src)
-        blob = await res.blob()
+        blob = await fetchBlob(src)
         const mime = blob.type || 'image/png'
         let ext = mime.includes('/') ? mime.split('/')[1] : 'png'
         filename = `image.${ext}`
       } else {
         const cleanUrl = src.split('?')[0]
         try {
-          const res = await fetch(cleanUrl, { mode: 'cors' })
-          blob = await res.blob()
+          blob = await fetchBlob(cleanUrl)
           const mime = blob.type || 'image/png'
           let ext = mime.includes('/') ? mime.split('/')[1] : 'png'
           filename = cleanUrl.split('/').pop() || `image.${ext}`
         } catch (err) {
-          alert('无法下载 URL:' + cleanUrl)
+          Qmsg.error('无法下载 URL:' + cleanUrl)
           console.error('无法下载 URL:', cleanUrl, err)
           return // 直接退出，不触发下载
         }
       }
-
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -400,35 +425,31 @@
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch (err) {
-      alert('下载失败')
+      Qmsg.error('下载失败:' + src)
       console.error('下载失败', err)
     }
   })
 
-  const cleanImageUrl = url => {
-    // 去掉 ? 参数
-    let cleanUrl = url.split('?')[0]
-    // 去掉最后文件名里的冒号后缀
-    // 例如 media/G1DCi9XagAA7-1R.jpg:thumb -> media/G1DCi9XagAA7-1R.jpg
-    cleanUrl = cleanUrl.replace(/\/([^\/]+):[^\/]+$/, '/$1')
-    return cleanUrl
-  }
-
   // 下载相册
   downloadAll.addEventListener('click', async () => {
-    if (!window.JSZip) {
-      alert('JSZip未加载，请稍等')
+    if (!window.fflate) {
+      Qmsg.error('fflate未加载，请稍等')
       return
     }
-    const zip = new JSZip()
-    const folder = zip.folder('album')
 
     let dataUrlCount = 1
+    const zipFiles = {}
+    const total = imgs.length
+    let completed = 0
 
-    for (let img of imgs) {
+    // 显示加载条
+    const loadingMsg = Qmsg.loading(`正在下载图片 0/${total} ...`)
+
+    // 构建下载任务
+    const tasks = imgs.map(async img => {
       try {
-        let blob, filename
         const src = img.src
+        let uint8arr, filename
 
         if (src.startsWith('data:')) {
           const [header, data] = src.split(',')
@@ -438,61 +459,67 @@
           if (header.includes('base64')) {
             const bstr = atob(data)
             const n = bstr.length
-            const u8arr = new Uint8Array(n)
-            for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i)
-            blob = new Blob([u8arr], { type: mime })
+            uint8arr = new Uint8Array(n)
+            for (let i = 0; i < n; i++) uint8arr[i] = bstr.charCodeAt(i)
           } else {
-            blob = new Blob([decodeURIComponent(data)], { type: mime })
+            const decoded = decodeURIComponent(data)
+            uint8arr = new Uint8Array(decoded.length)
+            for (let i = 0; i < decoded.length; i++) uint8arr[i] = decoded.charCodeAt(i)
           }
 
           let ext = mime.split('/')[1] || 'bin'
           if (mime === 'image/svg+xml') ext = 'svg'
-
-          filename = `image_${dataUrlCount}.${ext}`
-          dataUrlCount++
+          filename = `image_${dataUrlCount++}.${ext}`
         } else if (src.startsWith('blob:')) {
-          const res = await fetch(src)
-          blob = await res.blob()
-          const mime = blob.type || 'image/png'
-          let ext = mime.split('/')[1] || 'png'
-          if (mime === 'image/svg+xml') ext = 'svg'
-          filename = `image_${dataUrlCount}.${ext}`
-          dataUrlCount++
+          Qmsg.warn('blob URL 图片无法下载，已跳过')
+          return
         } else {
-          const cleanUrl = cleanImageUrl(src)
+          let cleanUrl = src.split('?')[0].replace(/\/([^\/]+):[^\/]+$/, '/$1')
           try {
-            const res = await fetch(cleanUrl, { mode: 'cors' })
-            blob = await res.blob()
+            const blob = await fetchBlob(cleanUrl)
+            const arrayBuffer = await blob.arrayBuffer()
+            uint8arr = new Uint8Array(arrayBuffer)
+
             const mime = blob.type || 'image/png'
             let ext = mime.split('/')[1] || 'png'
             if (mime === 'image/svg+xml') ext = 'svg'
-
             const baseName = cleanUrl.split('/').pop()
-            if (baseName.includes('.')) filename = baseName
-            else filename = `image_${dataUrlCount}.${ext}`
-            dataUrlCount++
+            filename = baseName.includes('.') ? baseName : `image_${dataUrlCount++}.${ext}`
           } catch (err) {
+            Qmsg.error('无法下载 URL: ' + cleanUrl)
             console.warn('无法下载 URL:', cleanUrl, err)
-            continue
+            return
           }
         }
-
-        folder.file(filename, blob)
+        zipFiles[filename] = uint8arr
       } catch (err) {
         console.warn('下载失败:', img.src, err)
-        continue
+      } finally {
+        // 更新进度
+        completed++
+        loadingMsg.setText(`正在下载图片 ${completed}/${total} ...`)
       }
+    })
+    await Promise.all(tasks)
+    loadingMsg.setText(`图片下载完成，正在生成 ZIP...`)
+    try {
+      const zipped = fflate.zipSync(zipFiles)
+      const blob = new Blob([zipped], { type: 'application/zip' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'album.zip'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      Qmsg.success('相册下载完成！')
+    } catch (err) {
+      Qmsg.error('生成 ZIP 失败')
+      console.error(err)
+    } finally {
+      loadingMsg.close()
     }
-
-    const content = await zip.generateAsync({ type: 'blob' })
-    const url = URL.createObjectURL(content)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'album.zip'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
   })
 
   // 左右切换
@@ -503,6 +530,7 @@
   overlay.addEventListener('click', e => {
     if (e.target === overlay) closeLightbox()
   })
+
   window.addEventListener('keydown', e => {
     // 灯箱没打开就不处理
     if (overlay.style.display !== 'flex') return
@@ -510,6 +538,7 @@
     else if (e.key === 'ArrowLeft') showImage(currentIndex - 1, -1)
     else if (e.key === 'ArrowRight') showImage(currentIndex + 1, 1)
   })
+
   // 滚轮缩放
   window.addEventListener(
     'wheel',
@@ -531,11 +560,72 @@
 
   // 双击图片放大 / 恢复
   lbImg.addEventListener('dblclick', () => {
-    if (scale === 1) {
-      scale = 2 // 双击放大
-    } else {
-      scale = 1 // 再次双击恢复
-    }
+    scale = scale === 1 ? 2 : 1
     updateTransform()
+  })
+
+  let translateX = 0
+  let translateY = 0
+  let isDragging = false
+  let dragStartX = 0
+  let dragStartY = 0
+  let spacePressed = false
+
+  // 阻止浏览器默认拖拽图片
+  lbImg.addEventListener('dragstart', e => {
+    // 灯箱没打开就不处理
+    if (overlay.style.display !== 'flex') return
+    e.preventDefault()
+  })
+
+  // 监听空格键
+  document.addEventListener('keydown', e => {
+    // 灯箱没打开就不处理
+    if (overlay.style.display !== 'flex') return
+    if (e.code === 'Space') {
+      e.preventDefault() // 阻止页面滚动
+      spacePressed = true
+      lbImg.style.cursor = 'grab'
+    }
+  })
+
+  // 监听空格键
+  document.addEventListener('keyup', e => {
+    // 灯箱没打开就不处理
+    if (overlay.style.display !== 'flex') return
+    if (e.code === 'Space') {
+      spacePressed = false
+      lbImg.style.cursor = '' // 恢复默认
+    }
+  })
+
+  // 鼠标按下
+  lbImg.addEventListener('mousedown', e => {
+    // 灯箱没打开就不处理
+    if (overlay.style.display !== 'flex') return
+    if (!spacePressed) return
+    e.preventDefault() // 阻止默认点击/拖拽行为
+    isDragging = true
+    dragStartX = e.clientX - translateX
+    dragStartY = e.clientY - translateY
+    lbImg.style.cursor = 'grabbing'
+  })
+
+  // 鼠标移动
+  document.addEventListener('mousemove', e => {
+    // 灯箱没打开就不处理
+    if (overlay.style.display !== 'flex') return
+    if (!isDragging) return
+    translateX = e.clientX - dragStartX
+    translateY = e.clientY - dragStartY
+    lbImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale}) rotate(${rotation}deg)`
+  })
+
+  // 鼠标松开
+  window.addEventListener('mouseup', () => {
+    // 灯箱没打开就不处理
+    if (overlay.style.display !== 'flex') return
+    isDragging = false
+    lbImg.style.cursor = spacePressed ? 'grab' : 'default'
   })
 })()
