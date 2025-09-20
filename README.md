@@ -7,6 +7,7 @@ _AKA 通用网页图片灯箱 — 让你的网页图片瞬间炫酷起来_
 [![License](https://img.shields.io/github/license/setube/WebImageBox)](https://github.com/setube/WebImageBox/blob/main/LICENSE)
 [![Issues](https://img.shields.io/github/issues/setube/WebImageBox)](https://github.com/setube/WebImageBox/issues)
 
+
 ---
 
 ## 简介
@@ -20,9 +21,13 @@ _AKA 通用网页图片灯箱 — 让你的网页图片瞬间炫酷起来_
 别担心，**WebImageBox**来了！
 
 > 它是一款通用、强大、且自带幽默感的网页图片灯箱插件。  
-> 支持旋转、缩放、切换、单张下载、批量下载……就差帮你泡杯咖啡了（虽然我在考虑做个咖啡按钮 🤔）。
+> 支持旋转、缩放、切换、单张下载、批量下载……就差帮你泡杯咖啡了。
 
 ---
+
+## 插件预览
+[桌面端预览](./image_1.png)
+[移动端预览](./image_2.png)
 
 ## 功能亮点
 
@@ -54,7 +59,7 @@ _AKA 通用网页图片灯箱 — 让你的网页图片瞬间炫酷起来_
 
 1. 安装 **Tampermonkey** / **Violentmonkey** / **Greasemonkey**
 2. 新建脚本，把 `WebImageBox.user.js` 贴进去
-3. 打开任意网页，看到图片？点它！灯箱立刻出现 🎉
+3. 打开任意网页，看到图片？点它！灯箱立刻出现
 
 ---
 
@@ -93,7 +98,7 @@ _AKA 通用网页图片灯箱 — 让你的网页图片瞬间炫酷起来_
 ## 项目愿景
 
 未来，WebImageBox 想做到的事情很简单：  
-“让全网的图片都乖乖听你的指挥”，甚至有一天…能帮你自动分类收藏（好吧，我先去写个咖啡按钮 😎）。
+“让全网的图片都乖乖听你的指挥”，甚至有一天…能帮你自动分类收藏。
 
 ---
 
