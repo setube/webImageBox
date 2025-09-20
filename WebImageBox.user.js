@@ -193,7 +193,7 @@
   }
 
   const isSmallOrAvatar = img => {
-    const keywords = ['icon', 'ico', 'avatar', 'ava']
+    const keywords = ['icon', 'ico', 'avatar', 'ava', 'emoji', 'biaoqing']
     const checkString = str => keywords.some(k => (str || '').toLowerCase().includes(k))
     // 检查 img 本身
     if (checkString(img.src) || checkString(img.className) || checkString(img.id)) return true
