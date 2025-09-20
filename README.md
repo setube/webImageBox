@@ -1,5 +1,11 @@
 # WebImageBox
-*AKA 通用网页图片灯箱 — 让你的网页图片瞬间炫酷起来*
+
+_AKA 通用网页图片灯箱 — 让你的网页图片瞬间炫酷起来_
+
+[![GitHub stars](https://img.shields.io/github/stars/setube/WebImageBox?style=social)](https://github.com/setube/WebImageBox/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/setube/WebImageBox?style=social)](https://github.com/setube/WebImageBox/network/members)
+[![License](https://img.shields.io/github/license/setube/WebImageBox)](https://github.com/setube/WebImageBox/blob/main/LICENSE)
+[![Issues](https://img.shields.io/github/issues/setube/WebImageBox)](https://github.com/setube/WebImageBox/issues)
 
 ---
 
@@ -14,7 +20,7 @@
 别担心，**WebImageBox**来了！
 
 > 它是一款通用、强大、且自带幽默感的网页图片灯箱插件。  
-> 支持旋转、缩放、切换、单张下载、批量下载……就差帮你泡杯咖啡了（虽然我在考虑做个咖啡按钮 ）。
+> 支持旋转、缩放、切换、单张下载、批量下载……就差帮你泡杯咖啡了（虽然我在考虑做个咖啡按钮 🤔）。
 
 ---
 
@@ -29,30 +35,65 @@
 
 ---
 
-## 安装方式
+## 环境需求
 
-1. 使用 **Tampermonkey** / **Violentmonkey** / **Greasemonkey**
-2. 新建脚本，把 `WebImageBox.user.js` 贴进去
-3. 打开任意网页，看到图片？点它！灯箱立刻出现
+- **网页必须有 `<img>` 标签**（WebImageBox 不会帮你画图画）
+- **CSP 封闭网站**：部分严格网站可能无法直接下载图片，需要开启 CORS 或在控制台允许脚本
 
 ---
 
-## 使用示例
+## 浏览器需求
 
-- 点击网页上的任意图片 → **灯箱开启**
-- 滚轮或双击 → **缩放**
-- 左右箭头 → **切换图片**
-- 右上角按钮 → **旋转 / 下载 / 下载全图集 / 关闭**
+- **现代浏览器**：Chrome / Edge / Firefox / Safari（基本覆盖主流）
+- **扩展支持**：Tampermonkey / Violentmonkey / Greasemonkey
+- **JavaScript 必须启用**（WebImageBox 不会在你关掉 JS 时自动变魔术）
 
-简单一句话：
-> 看图不爽？WebImageBox 来帮你！
+---
+
+## 安装方式
+
+1. 安装 **Tampermonkey** / **Violentmonkey** / **Greasemonkey**
+2. 新建脚本，把 `WebImageBox.user.js` 贴进去
+3. 打开任意网页，看到图片？点它！灯箱立刻出现 🎉
+
+---
+
+## 使用教程
+
+1. **打开图片灯箱**  
+   点击网页上的任意图片 → **灯箱开启**
+
+2. **缩放图片**
+
+   - 右上角按钮 → 放大/缩小
+   - 滚轮向上/向下 → 放大/缩小
+   - 双击图片 → 放大
+
+3. **旋转图片**
+
+   - 右上角按钮 → 左旋 / 右旋
+
+4. **切换图片**
+
+   - 左右箭头按钮 → 前一张 / 下一张
+   - 键盘 ← / → → 前一张 / 下一张
+
+5. **下载图片**
+
+   - 单张下载 → 右上角下载按钮
+   - 批量下载 → 右上角 “下载相册” 按钮（会打包成 ZIP）
+
+6. **关闭灯箱**
+   - 右上角关闭按钮
+   - 点击遮罩背景
+   - ESC 键
 
 ---
 
 ## 项目愿景
 
 未来，WebImageBox 想做到的事情很简单：  
-“让全网的图片都乖乖听你的指挥”，甚至有一天…能帮你自动分类收藏（好吧，我先去写个咖啡按钮 ）。
+“让全网的图片都乖乖听你的指挥”，甚至有一天…能帮你自动分类收藏（好吧，我先去写个咖啡按钮 😎）。
 
 ---
 
