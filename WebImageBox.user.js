@@ -2,7 +2,7 @@
 // @name         通用网页图片灯箱(WebImageBox)
 // @author       setube
 // @namespace    https://github.com/setube/webImageBox
-// @version      1.5.5
+// @version      1.5.6
 // @description  通用网页图片灯箱：旋转、缩放、切换、单张/批量下载，让你看图不再受限
 // @match        *://*/*
 // @require      https://registry.npmmirror.com/jszip/3.10.1/files/dist/jszip.min.js
@@ -193,24 +193,31 @@
   }
 
   const isSmallOrAvatar = img => {
+    // 被广告插件屏蔽
+    if (!img.complete || !img.naturalWidth || !img.naturalHeight || !img.width || !img.height) return false
+    // 图片元素必须在页面中可见
+    const rect = img.getBoundingClientRect()
+    if (!rect.width || !rect.height) return false
+    // CSS 隐藏或无尺寸
+    const style = getComputedStyle(img)
+    if (style.display === 'none' || style.visibility === 'hidden') return false
     const keywords = [
       'icon', 'ico', 'avatar', 'ava', 'emoji', 'biaoqing', 
-      'logo', 'btn', 'button', 'qrcode', 'vip', 'qq', 'gtimg',
-      'chat', 'github', 'shields'
+      'logo', 'btn', 'button', 'qrcode', 'advertisement', 'ads', 'promotation'
     ]
     const checkString = str => keywords.some(k => (str || '').toLowerCase().includes(k))
     // 检查 img 本身
-    if (checkString(img.src) || checkString(img.className) || checkString(img.id)) return true
+    if (checkString(img.src) || checkString(img.className) || checkString(img.id)) return false
     for (let attr of img.attributes) {
-      if (checkString(attr.value)) return true
+      if (checkString(attr.value)) return false
     }
     // 检查父 a 标签
     let parent = img.parentElement
     while (parent) {
-      if (checkString(parent.href) || checkString(parent.className) || checkString(parent.id)) return true
+      if (checkString(parent.href) || checkString(parent.className) || checkString(parent.id)) return false
       parent = parent.parentElement
     }
-    return false
+    return true
   }
 
   // 设置图片，过滤重复（按 URL 或文件名）
@@ -224,7 +231,7 @@
       // 跳过灯箱内部的缩略图和主图
       if (img.closest('#myLightboxOverlay')) return
       // 忽略头像、小图
-      if (img.naturalWidth < 100 || img.naturalHeight < 100) return
+      if (img.width < 100 || img.height < 100 || !isSmallOrAvatar(img)) return
       const fileName = img.src.split('/').pop()
       if (!uniqueSrc.has(img.src) && !uniqueName.has(fileName)) {
         uniqueSrc.add(img.src)
