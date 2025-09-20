@@ -2,7 +2,7 @@
 // @name         通用网页图片灯箱(WebImageBox)
 // @author       setube
 // @namespace    https://github.com/setube/webImageBox
-// @version      1.6.2
+// @version      1.6.3
 // @description  通用网页图片灯箱：旋转、缩放、拖拽、切换、单张/批量下载，让你看图下图不再受限
 // @match        *://*/*
 // @require      https://registry.npmmirror.com/fflate/0.8.2/files/umd/index.js
