@@ -2,8 +2,8 @@
 // @name         通用网页图片灯箱(WebImageBox)
 // @author       setube
 // @namespace    https://github.com/setube/webImageBox
-// @version      1.6.1
-// @description  通用网页图片灯箱：旋转、缩放、拖拽、切换、单张/批量下载，让你看图不再受限
+// @version      1.6.2
+// @description  通用网页图片灯箱：旋转、缩放、拖拽、切换、单张/批量下载，让你看图下图不再受限
 // @match        *://*/*
 // @require      https://registry.npmmirror.com/fflate/0.8.2/files/umd/index.js
 // @require      https://unpkg.com/qmsg@1.4.0/dist/index.umd.js
@@ -359,16 +359,21 @@
   // 关闭按钮
   closeBtn.addEventListener('click', closeLightbox)
 
-  const fetchBlob = url =>
-    new Promise((resolve, reject) => {
+  const fetchBlob = url => {
+    const Referer = new URL(url).origin
+    return new Promise((resolve, reject) => {
       GM_xmlhttpRequest({
         method: 'GET',
         url,
+        headers: {
+          Referer
+        },
         responseType: 'blob',
         onload: res => resolve(res.response),
         onerror: err => reject(err)
       })
     })
+  }
 
   // 单张下载
   download.addEventListener('click', async () => {
