@@ -2,11 +2,11 @@
 // @name         通用网页图片灯箱(WebImageBox)
 // @author       setube
 // @namespace    https://github.com/setube/webImageBox
-// @version      1.3
-// @description  通用网页图片灯箱：旋转、缩放、切换、单张/批量下载，让你看图不再受限（甚至可能加咖啡按钮）
+// @version      1.5
+// @description  通用网页图片灯箱：旋转、缩放、切换、单张/批量下载，让你看图不再受限
 // @match        *://*/*
 // @require      https://registry.npmmirror.com/jszip/3.10.1/files/dist/jszip.min.js
-// @grant        none
+// @license      Apache-2.0
 // ==/UserScript==
 
 ;(function () {
@@ -37,6 +37,7 @@
   .lb-thumbs img { height:60px; cursor:pointer; opacity:0.5; transition:0.3s; flex-shrink:0; }
   .lb-thumbs img.active { opacity:1; border:2px solid #fff; }
   @media (max-width: 768px) {
+    .lb-nav-button, .lb-buttons button { width: 40px; height: 40px;}
     .lb-nav-button:hover, .lb-buttons button:hover { background: rgba(0,0,0,0.6); }
   }
   `
@@ -77,8 +78,7 @@
     btn.title = cfg.title
     btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" 
     fill="none" viewBox="0 0 24 24" 
-    stroke="currentColor" stroke-width="2" 
-    width="20" height="20">${cfg.svg}</svg>`
+    stroke="currentColor" stroke-width="2">${cfg.svg}</svg>`
     controls.appendChild(btn)
   })
   overlay.appendChild(controls)
@@ -90,9 +90,7 @@
   prevBtn.setAttribute('aria-label', '上一张')
   prevBtn.innerHTML = `
   <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" 
-    stroke="currentColor" stroke-width="2" 
-    width="20" height="20">
+    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
     <path d="M15 18L9 12l6-6"></path>
   </svg>`
 
@@ -102,9 +100,7 @@
   nextBtn.setAttribute('aria-label', '下一张')
   nextBtn.innerHTML = `
   <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" 
-    stroke="currentColor" stroke-width="2" 
-    width="20" height="20">
+    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" >
     <path d="M9 6l6 6-6 6"></path>
   </svg>`
 
@@ -194,6 +190,23 @@
     }
   }
 
+  const isSmallOrAvatar = img => {
+    const keywords = ['icon', 'ico', 'avatar', 'ava']
+    const checkString = str => keywords.some(k => (str || '').toLowerCase().includes(k))
+    // 检查 img 本身
+    if (checkString(img.src) || checkString(img.className) || checkString(img.id)) return true
+    for (let attr of img.attributes) {
+      if (checkString(attr.value)) return true
+    }
+    // 检查父 a 标签
+    let parent = img.parentElement
+    while (parent) {
+      if (checkString(parent.href) || checkString(parent.className) || checkString(parent.id)) return true
+      parent = parent.parentElement
+    }
+    return false
+  }
+
   // 设置图片，过滤重复（按 URL 或文件名）
   const setupImages = () => {
     const pageImgs = Array.from(document.querySelectorAll('img'))
@@ -211,7 +224,7 @@
         imgs.push(img)
 
         // 避免重复绑定
-        if (!img.dataset.lb) {
+        if (!img.dataset.lb && !isSmallOrAvatar(img)) {
           img.dataset.lb = 'true'
           img.style.cursor = 'zoom-in'
 
@@ -269,15 +282,14 @@
   const lockBodyScroll = () => {
     // 保存当前滚动位置
     const scrollY = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
+    // 阻止页面滚动
+    document.body.style.overflow = 'hidden'
     document.body.dataset.scrollY = scrollY // 保存 scrollY 方便解锁
   }
 
   const unlockBodyScroll = () => {
     const scrollY = document.body.dataset.scrollY || 0
-    document.body.style.position = ''
-    document.body.style.top = ''
+    document.body.style.overflow = 'auto'
     window.scrollTo(0, scrollY)
   }
 
