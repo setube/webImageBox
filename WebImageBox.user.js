@@ -2,7 +2,7 @@
 // @name         通用网页图片灯箱(WebImageBox)
 // @author       setube
 // @namespace    https://github.com/setube/webImageBox
-// @version      1.5.3
+// @version      1.5.4
 // @description  通用网页图片灯箱：旋转、缩放、切换、单张/批量下载，让你看图不再受限
 // @match        *://*/*
 // @require      https://registry.npmmirror.com/jszip/3.10.1/files/dist/jszip.min.js
@@ -196,7 +196,7 @@
     const keywords = [
       'icon', 'ico', 'avatar', 'ava', 'emoji', 'biaoqing', 
       'logo', 'btn', 'button', 'qrcode', 'vip', 'qq', 'gtimg',
-      'chat'
+      'chat', 'github', 'shields'
     ]
     const checkString = str => keywords.some(k => (str || '').toLowerCase().includes(k))
     // 检查 img 本身
